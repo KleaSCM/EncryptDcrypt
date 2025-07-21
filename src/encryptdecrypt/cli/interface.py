@@ -331,22 +331,24 @@ class CLI:
         self.console.print("\n[green]🎉 System test complete![/green]")
     
     def run_benchmark(self):
-        """Run comprehensive benchmark."""
+        """Run comprehensive benchmark on any directory."""
         self.console.print("[yellow]🏃 Running Benchmark...[/yellow]")
         self.console.print("=" * 40)
-        
-        # Check if test directory exists
-        test_dir = Path("Folderwithstuff")
-        if not test_dir.exists():
-            self.console.print("[red]❌ Test directory 'Folderwithstuff' not found![/red]")
-            self.console.print("Please ensure the test directory exists and contains your files.")
+
+        # Prompt for directory
+        dir_path = Prompt.ask("Enter directory to benchmark (leave blank for Folderwithstuff)").strip()
+        if not dir_path:
+            dir_path = "Folderwithstuff"
+        test_dir = Path(dir_path)
+        if not test_dir.exists() or not test_dir.is_dir():
+            self.console.print(f"[red]❌ Directory not found: {test_dir}[/red]")
             return
-        
+
         # Analyze files
-        self.console.print("[blue]🔍 Analyzing files...[/blue]")
+        self.console.print(f"[blue]🔍 Analyzing files in: {test_dir}...[/blue]")
         files = []
         total_size = 0
-        
+
         for file_path in test_dir.rglob("*"):
             if file_path.is_file():
                 try:
@@ -360,21 +362,43 @@ class CLI:
                     total_size += size
                 except Exception as e:
                     self.console.print(f"Error analyzing {file_path}: {e}")
-        
+
         self.console.print(f"[green]📁 Found {len(files)} files[/green]")
         self.console.print(f"[green]💾 Total size: {round(total_size / (1024 * 1024), 2)} MB[/green]")
-        
-        if not files:
-            self.console.print("[red]❌ No files found for benchmarking![/red]")
-            return
-        
-        self.console.print(f"\n[blue]🚀 Benchmarking with {min(len(files), 20)} files...[/blue]")
-        
+
+        # Ask how many files to test
+        max_files = len(files)
+        if max_files > 20:
+            file_count_input = Prompt.ask(
+                f"How many files to test? (1-{max_files}, or 'all' for all {max_files} files)",
+                default="20"
+            ).strip().lower()
+            
+            if file_count_input == "all":
+                test_file_count = max_files
+            else:
+                try:
+                    test_file_count = int(file_count_input)
+                    test_file_count = max(1, min(test_file_count, max_files))
+                except ValueError:
+                    test_file_count = 20
+        else:
+            test_file_count = max_files
+
+        self.console.print(f"\n[blue]🚀 Benchmarking with {test_file_count} files...[/blue]")
+
+        # Warn for very large datasets
+        if test_file_count > 100:
+            estimated_time = test_file_count * 0.5  # Rough estimate: 0.5s per file
+            self.console.print(f"[yellow]⚠️  Large dataset detected! Estimated time: ~{estimated_time/60:.1f} minutes[/yellow]")
+            self.console.print("[yellow]💡 Tip: You can press Ctrl+C to stop early if needed[/yellow]")
+
         # Sort by size (largest first)
         files.sort(key=lambda x: x["size_bytes"], reverse=True)
-        test_files = files[:20]
-        
+        test_files = files[:test_file_count]
+
         results = {
+            "directory": str(test_dir),
             "timestamp": datetime.now().isoformat(),
             "files_tested": len(test_files),
             "total_size_mb": sum(f["size_mb"] for f in test_files),
@@ -382,7 +406,7 @@ class CLI:
             "decryption_times": [],
             "file_results": []
         }
-        
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -392,35 +416,35 @@ class CLI:
             console=self.console
         ) as progress:
             task = progress.add_task("Processing files...", total=len(test_files))
-            
+
             for i, file_info in enumerate(test_files, 1):
                 progress.update(task, description=f"Processing {Path(file_info['path']).name}")
-                
+
                 try:
                     # Create temporary files
                     temp_encrypted = f"temp_enc_{i}.encrypted"
                     temp_decrypted = f"temp_dec_{i}.txt"
-                    
+
                     # Time encryption using CLI method (handles file copying)
                     start_time = time.time()
                     enc_success = self.encrypt_file(file_info["path"], temp_encrypted)
                     enc_time = time.time() - start_time
-                    
+
                     if not enc_success:
                         raise Exception("Encryption failed")
-                    
+
                     # Time decryption using CLI method (handles file copying)
                     start_time = time.time()
                     dec_success = self.decrypt_file(temp_encrypted, temp_decrypted)
                     dec_time = time.time() - start_time
-                    
+
                     if not dec_success:
                         raise Exception("Decryption failed")
-                    
+
                     # Calculate hashes
                     original_hash = self.get_file_hash(file_info["path"])
                     decrypted_hash = self.get_file_hash(temp_decrypted)
-                    
+
                     file_result = {
                         "file": Path(file_info["path"]).name,
                         "size_mb": file_info["size_mb"],
@@ -430,21 +454,21 @@ class CLI:
                         "decryption_speed": round(file_info["size_mb"] / dec_time, 2),
                         "integrity_ok": original_hash == decrypted_hash
                     }
-                    
+
                     results["encryption_times"].append(enc_time)
                     results["decryption_times"].append(dec_time)
                     results["file_results"].append(file_result)
-                    
+
                     # Clean up
                     os.remove(temp_encrypted)
                     os.remove(temp_decrypted)
-                    
+
                     progress.update(task, advance=1)
-                    
+
                 except Exception as e:
                     self.console.print(f"  [red]❌ Error: {e}[/red]")
                     progress.update(task, advance=1)
-        
+
         # Calculate summary
         if results["encryption_times"]:
             results["summary"] = {
@@ -455,14 +479,14 @@ class CLI:
                 "avg_encryption_speed": round(results["total_size_mb"] / sum(results["encryption_times"]), 2),
                 "avg_decryption_speed": round(results["total_size_mb"] / sum(results["decryption_times"]), 2)
             }
-        
+
         # Save results
         results_file = self.metrics_dir / "benchmark_results.json"
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2, default=str)
-        
+
         self.console.print(f"\n[green]💾 Results saved to: {results_file}[/green]")
-        
+
         # Display summary
         if results.get("summary"):
             summary = results["summary"]
@@ -471,74 +495,94 @@ class CLI:
             self.console.print(f"   Total size: {results['total_size_mb']} MB")
             self.console.print(f"   Avg encryption speed: {summary['avg_encryption_speed']} MB/s")
             self.console.print(f"   Avg decryption speed: {summary['avg_decryption_speed']} MB/s")
-        
+
         self.console.print("\n[green]🎉 Benchmark complete![/green]")
     
     def view_metrics(self):
-        """View detailed benchmark metrics."""
+        """Display latest benchmark results and metrics."""
+        self.console.print("[yellow]📊 Viewing Metrics...[/yellow]")
+        self.console.print("=" * 40)
+
         results_file = self.metrics_dir / "benchmark_results.json"
         if not results_file.exists():
             self.console.print("[red]❌ No benchmark results found![/red]")
-            self.console.print("Run a benchmark first with option 4.")
+            self.console.print("Run a benchmark first to generate metrics.")
             return
-        
-        with open(results_file, 'r') as f:
-            results = json.load(f)
-        
-        self.console.print("[blue]📊 Detailed Metrics[/blue]")
-        self.console.print("=" * 50)
-        
-        summary = results.get("summary", {})
-        self.console.print(f"📁 Files Tested: {results['files_tested']}")
-        self.console.print(f"💾 Total Size: {results['total_size_mb']:.2f} MB")
-        self.console.print(f"⏱️  Total Time: {summary.get('total_encryption_time', 0) + summary.get('total_decryption_time', 0):.3f}s")
-        
-        # Create performance table
-        table = Table(title="Performance Summary")
-        table.add_column("Operation", style="cyan")
-        table.add_column("Average Time", style="green")
-        table.add_column("Total Time", style="yellow")
-        table.add_column("Average Speed", style="magenta")
-        
-        table.add_row(
-            "Encryption",
-            f"{summary.get('avg_encryption_time', 0):.3f}s",
-            f"{summary.get('total_encryption_time', 0):.3f}s",
-            f"{summary.get('avg_encryption_speed', 0):.1f} MB/s"
-        )
-        table.add_row(
-            "Decryption",
-            f"{summary.get('avg_decryption_time', 0):.3f}s",
-            f"{summary.get('total_decryption_time', 0):.3f}s",
-            f"{summary.get('avg_decryption_speed', 0):.1f} MB/s"
-        )
-        
-        self.console.print(table)
-        
-        # File type analysis
-        file_results = results.get("file_results", [])
-        if file_results:
-            file_types = {}
-            for result in file_results:
-                ext = Path(result["file"]).suffix.lower()
-                if ext not in file_types:
-                    file_types[ext] = []
-                file_types[ext].append(result)
-            
-            self.console.print("\n[blue]📊 Performance by File Type:[/blue]")
-            for ext, files in file_types.items():
-                if len(files) > 0:
-                    avg_enc_speed = statistics.mean([f["encryption_speed"] for f in files])
-                    avg_dec_speed = statistics.mean([f["decryption_speed"] for f in files])
-                    total_size = sum(f["size_mb"] for f in files)
-                    
-                    self.console.print(f"   {ext or 'no ext'}: {len(files)} files, {total_size:.2f} MB")
-                    self.console.print(f"     Avg Enc: {avg_enc_speed:.1f} MB/s, Avg Dec: {avg_dec_speed:.1f} MB/s")
-        
-        # Integrity check
-        integrity_ok = sum(1 for r in file_results if r["integrity_ok"])
-        total_files = len(file_results)
-        self.console.print(f"\n[green]🔍 Integrity: {integrity_ok}/{total_files} files verified ({integrity_ok/total_files*100:.1f}%)[/green]")
+
+        try:
+            with open(results_file, 'r') as f:
+                results = json.load(f)
+
+            # Display benchmark info
+            self.console.print(f"[blue]📁 Directory tested:[/blue] {results.get('directory', 'Unknown')}")
+            self.console.print(f"[blue]🕒 Timestamp:[/blue] {results.get('timestamp', 'Unknown')}")
+            self.console.print(f"[blue]📄 Files tested:[/blue] {results.get('files_tested', 0)}")
+            self.console.print(f"[blue]💾 Total size:[/blue] {results.get('total_size_mb', 0)} MB")
+
+            # Display summary metrics
+            if 'summary' in results:
+                summary = results['summary']
+                self.console.print(f"\n[green]📈 Performance Summary:[/green]")
+                self.console.print(f"   Average encryption time: {summary['avg_encryption_time']}s")
+                self.console.print(f"   Average decryption time: {summary['avg_decryption_time']}s")
+                self.console.print(f"   Total encryption time: {summary['total_encryption_time']}s")
+                self.console.print(f"   Total decryption time: {summary['total_decryption_time']}s")
+                self.console.print(f"   Average encryption speed: {summary['avg_encryption_speed']} MB/s")
+                self.console.print(f"   Average decryption speed: {summary['avg_decryption_speed']} MB/s")
+
+            # Display individual file results
+            if 'file_results' in results and results['file_results']:
+                self.console.print(f"\n[green]📋 Individual File Results:[/green]")
+                
+                # Create table
+                table = Table(title="File Performance Details")
+                table.add_column("File", style="cyan")
+                table.add_column("Size (MB)", style="magenta")
+                table.add_column("Enc Time (s)", style="yellow")
+                table.add_column("Dec Time (s)", style="yellow")
+                table.add_column("Enc Speed (MB/s)", style="green")
+                table.add_column("Dec Speed (MB/s)", style="green")
+                table.add_column("Integrity", style="blue")
+
+                for file_result in results['file_results']:
+                    integrity_status = "✅" if file_result.get('integrity_ok', False) else "❌"
+                    table.add_row(
+                        file_result['file'],
+                        str(file_result['size_mb']),
+                        str(file_result['encryption_time']),
+                        str(file_result['decryption_time']),
+                        str(file_result['encryption_speed']),
+                        str(file_result['decryption_speed']),
+                        integrity_status
+                    )
+
+                self.console.print(table)
+
+            # Display file type analysis
+            if 'file_results' in results and results['file_results']:
+                self.console.print(f"\n[green]📊 File Type Analysis:[/green]")
+                file_types = {}
+                for file_result in results['file_results']:
+                    ext = Path(file_result['file']).suffix.lower()
+                    if ext not in file_types:
+                        file_types[ext] = {'count': 0, 'total_size': 0}
+                    file_types[ext]['count'] += 1
+                    file_types[ext]['total_size'] += file_result['size_mb']
+
+                type_table = Table(title="File Types Processed")
+                type_table.add_column("Extension", style="cyan")
+                type_table.add_column("Count", style="magenta")
+                type_table.add_column("Total Size (MB)", style="yellow")
+
+                for ext, data in sorted(file_types.items(), key=lambda x: x[1]['total_size'], reverse=True):
+                    type_table.add_row(ext, str(data['count']), str(round(data['total_size'], 2)))
+
+                self.console.print(type_table)
+
+        except Exception as e:
+            self.console.print(f"[red]❌ Error reading metrics: {e}[/red]")
+
+        self.console.print("\n[green]✅ Metrics display complete![/green]")
     
     def view_summary(self):
         """View quick summary."""

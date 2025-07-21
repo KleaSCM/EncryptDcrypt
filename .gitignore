@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Sensitive files
+key.txt
+
+# Metrics and benchmark results
+metrics/
+*.json
+
+# Test data and outputs
+Folderwithstuff/
+*.encrypted
+*.decrypted.txt
+test_output.txt
+
+# Jupyter notebooks
+notebooks/
+*.ipynb
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db 

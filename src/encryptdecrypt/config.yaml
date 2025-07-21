@@ -1,0 +1,193 @@
+
+# 🔐 Encryption Settings
+encryption:
+  # Algorithm configuration
+  algorithm: "fernet"  # fernet, aes256, chacha20
+  key_size: 256        # Key size in bits (128, 192, 256)
+  
+  # PBKDF2 settings for password-based encryption
+  pbkdf2:
+    iterations: 100000    # Number of iterations (higher = more secure but slower)
+    salt_size: 16         # Salt size in bytes
+    hash_algorithm: "sha256"  # sha256, sha512, blake2b
+    
+  # File processing settings
+  file_processing:
+    chunk_size: 4096      # Chunk size for large file processing
+    preserve_originals: true  # Keep original files after encryption
+    verify_integrity: true    # Verify file integrity with SHA-256
+    
+  # Security settings
+  security:
+    secure_deletion: false    # Securely overwrite files before deletion
+    key_rotation_days: 90     # Suggest key rotation every 90 days
+    max_file_size_mb: 1024    # Maximum file size to process (MB)
+
+# 🎨 Interface Settings
+interface:
+  # GUI settings
+  gui:
+    theme: "dark"           # dark, light, system
+    color_scheme: "blue"    # blue, green, purple, pink
+    window_size: "800x600"  # Default window size
+    show_animations: true   # Enable progress animations
+    
+  # CLI settings
+  cli:
+    colors: true            # Enable colored output
+    emojis: true            # Show emojis in output
+    progress_bars: true     # Show progress bars
+    verbose_logging: false  # Enable verbose logging
+
+# 📊 Logging and Reporting
+logging:
+  level: "INFO"             # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "colored"         # colored, simple, json
+  file_logging: false       # Save logs to file
+  log_file: "encryptdecrypt.log"
+  
+  # Performance tracking
+  performance:
+    track_timing: true      # Track operation timing
+    memory_usage: false     # Track memory usage
+    detailed_stats: true    # Generate detailed statistics
+
+# 🔧 Advanced Settings
+advanced:
+  # Threading settings
+  threading:
+    max_workers: 4          # Maximum number of worker threads
+    timeout_seconds: 300    # Operation timeout in seconds
+    
+  # Error handling
+  error_handling:
+    retry_attempts: 3       # Number of retry attempts on failure
+    retry_delay: 1          # Delay between retries in seconds
+    continue_on_error: true # Continue processing other files on error
+    
+  # File filtering
+  file_filtering:
+    include_extensions: []  # Only process these file extensions (empty = all)
+    exclude_extensions: [".key", ".log", ".tmp"]  # Skip these extensions
+    exclude_hidden: true    # Skip hidden files
+    max_depth: 10           # Maximum directory depth for recursive processing
+
+# 💾 Backup and Recovery
+backup:
+  # Key backup settings
+  key_backup:
+    auto_backup: true       # Automatically backup encryption keys
+    backup_location: "./backups/"  # Backup directory
+    backup_frequency: "daily"      # daily, weekly, monthly
+    
+  # File backup settings
+  file_backup:
+    backup_before_encryption: false  # Backup files before encryption
+    backup_location: "./backups/files/"
+    keep_backups_days: 30           # Keep backups for 30 days
+
+# 🌟 Feature Flags
+features:
+  # Experimental features
+  experimental:
+    parallel_processing: true    # Enable parallel file processing
+    compression: false           # Enable file compression before encryption
+    deduplication: false         # Enable file deduplication
+    
+  # Advanced features
+  advanced:
+    key_sharing: false           # Enable secure key sharing
+    audit_logging: true          # Enable detailed audit logging
+    performance_optimization: true  # Enable performance optimizations
+
+# 🎯 User Preferences
+preferences:
+  # Default behaviors
+  defaults:
+    confirm_operations: true     # Ask for confirmation before operations
+    show_warnings: true          # Show security warnings
+    auto_save_settings: true     # Auto-save user preferences
+    
+  # Display preferences
+  display:
+    show_file_sizes: true        # Show file sizes in interface
+    show_progress_percentage: true  # Show progress percentages
+    show_eta: true               # Show estimated time remaining
+    
+  # Notification preferences
+  notifications:
+    show_success_notifications: true   # Show success notifications
+    show_error_notifications: true     # Show error notifications
+    sound_notifications: false         # Play sound notifications
+
+# 🔒 Security Policies
+security_policies:
+  # Password policies
+  password:
+    min_length: 12              # Minimum password length
+    require_special_chars: true # Require special characters
+    require_numbers: true       # Require numbers
+    require_uppercase: true     # Require uppercase letters
+    
+  # Key policies
+  key:
+    auto_rotate: false          # Automatically rotate keys
+    rotation_reminder_days: 7   # Days before rotation reminder
+    key_strength_check: true    # Verify key strength
+    
+  # File policies
+  file:
+    max_files_per_operation: 1000  # Maximum files per operation
+    allowed_file_types: []         # Restrict to specific file types
+    block_dangerous_extensions: true  # Block potentially dangerous extensions
+
+# 📈 Performance Settings
+performance:
+  # Memory management
+  memory:
+    max_memory_usage_mb: 512    # Maximum memory usage in MB
+    garbage_collection: true    # Enable garbage collection
+    memory_monitoring: false    # Monitor memory usage
+    
+  # Processing optimization
+  processing:
+    batch_size: 10              # Number of files to process in batch
+    cache_results: true         # Cache operation results
+    optimize_for_speed: true    # Optimize for speed over memory usage
+    
+  # I/O optimization
+  io:
+    buffer_size: 8192           # I/O buffer size
+    async_io: true              # Use asynchronous I/O
+    compression_level: 6        # Compression level (0-9)
+
+# 🌍 Localization
+localization:
+  language: "en"                # Language code (en, es, fr, de, etc.)
+  timezone: "UTC"               # Timezone for timestamps
+  date_format: "%Y-%m-%d %H:%M:%S"  # Date/time format
+  number_format: "en_US"        # Number formatting locale
+
+# 🎨 Customization
+customization:
+  # Color themes
+  themes:
+    primary_color: "#FF69B4"    # Primary accent color
+    secondary_color: "#32CD32"  # Secondary accent color
+    background_color: "#2B2B2B" # Background color
+    text_color: "#FFFFFF"       # Text color
+    
+  # Custom messages
+  messages:
+    welcome_message: "🌸 Welcome to EncryptDecrypt! 💕"
+    success_message: "✨ Operation completed successfully!"
+    error_message: "❌ An error occurred during the operation."
+    warning_message: "⚠️  Please review the operation before proceeding."
+
+# 📝 Metadata
+metadata:
+  version: "2.0.0"              # Configuration version
+  created_by: "Yuriko"          # Created by
+  created_date: "2024-01-01"    # Creation date
+  last_modified: "2024-01-01"   # Last modification date
+  description: "Advanced encryption system configuration" 

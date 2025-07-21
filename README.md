@@ -1,48 +1,120 @@
-Encrypt/Decrypt: A Python-based Automation Tool
-Overview
-Encrypt/Decrypt is a Python-based automation tool designed to streamline repetitive tasks such as encrypting/decrypting files, creating protected Excel and Word documents with random data, and processing CSV files into Excel format. The tool leverages Python libraries to provide a comprehensive solution for automating file protection and data generation workflows.
+# EncryptDcrypt - Advanced File Encryption System
 
-Features
-File Encryption/Decryption: Encrypt and decrypt files using the cryptography library.
-Excel and Word Document Generation: Create Excel and Word documents with random data and protect them with passwords.
-Key Generation: Generate and save encryption keys for secure file encryption and decryption.
+EncryptDcrypt is a robust, modular encryption platform for secure file encryption, batch processing, benchmarking, and analytics. It features a modern, menu-driven CLI, an optional GUI, and comprehensive reporting—all in a single, unified system.
 
-Installation
+---
 
+## Features
 
+- **Fernet (AES) encryption** with PBKDF2 key derivation and SHA-256 integrity verification
+- **Unified CLI** for encryption, decryption, benchmarking, metrics, and file analysis
+- **Optional GUI** (CustomTkinter) for users who prefer a graphical workflow
+- **Benchmarking and metrics**: Real-time performance measurement, file type analysis, and integrity checks
+- **Key management**: Secure, automated key generation and rotation
+- **Safe defaults**: Sensitive files, test data, and metrics are excluded from version control
 
-Clone the Repository:
+---
 
-git clone https://github.com/your-username/Encrypt-Decrypt.git
-cd Encrypt-Decrypt
+## Quick Start
 
-Install Dependencies:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/EncryptDcrypt.git
+   cd EncryptDcrypt
+   ```
+2. **Install dependencies:**
+   - CLI only:
+     ```bash
+     pip install -r requirements.txt
+     ```
+   - For GUI (optional):
+     - On Arch Linux:
+       ```bash
+       sudo pacman -S python-customtkinter
+       ```
+     - Or (in a venv):
+       ```bash
+       pip install customtkinter
+       ```
+3. **Run the CLI:**
+   ```bash
+   ./EncryptDcrypt
+   # or
+   python3 EncryptDcrypt
+   ```
 
-pip install -r requirements.txt
+---
 
-Generate Encryption Key:
+## Usage
 
-python generate_key.py
+### CLI Menu
+- Encrypt/decrypt single files or directories
+- Run system tests
+- Benchmark with real performance metrics
+- View metrics and analytics
+- Analyze files (type breakdown, size, largest files)
+- Launch GUI (if CustomTkinter is installed)
+- Help and usage information
 
-Usage:
+#### Example CLI Session
+```
+$ ./EncryptDcrypt
+1. Encrypt File/Directory
+2. Decrypt File/Directory
+3. Run System Test
+4. Run Benchmark
+5. View Metrics
+6. View Summary
+7. Analyze Files
+8. Launch GUI
+9. Help
+0. Exit
+```
 
-Encryption and Decryption
-Encrypt Files
-Create a files Directory
-mkdir files
+### Optional GUI
+- Launch from CLI menu (option 8)
+- Requires `customtkinter`
+- Dark mode, drag-and-drop, real-time progress
 
-Place the Files to be Encrypted in the files Directory:
+---
 
-Run the Encryption Script
-python encrypt_files.py
+## File Structure
 
-Decrypt Files:
+```
+EncryptDcrypt/
+├── EncryptDcrypt           # Main CLI launcher (executable)
+├── src/
+│   └── encryptdecrypt/
+│       ├── cli/            # CLI interface code
+│       ├── gui/            # GUI interface code (optional)
+│       ├── core/           # Encryption engine
+│       └── utils/          # Utility functions
+├── metrics/                # Benchmark results (ignored by git)
+├── Folderwithstuff/        # Test data (ignored by git)
+├── key.txt                 # Encryption key (ignored by git)
+├── requirements.txt        # Python dependencies
+├── .gitignore              # Git ignore rules
+└── README.md               # This file
+```
 
-Ensure the Encrypted Files are in the files Directory:
-Run the Decryption Script
-python decrypt_files.py
+---
 
-Create Protected Excel and Word Documents:
+## Technical Details
 
-Run the Main Script to Generate Documents
-python main.py
+- **Encryption**: Fernet (AES-128, CBC, PKCS7), PBKDF2 (SHA-256, 100k iterations)
+- **Key management**: Auto-generated, stored in `key.txt` (never commit this)
+- **Benchmarking**: Encrypts/decrypts sample files, measures speed, verifies integrity
+- **Metrics**: Saved in `metrics/benchmark_results.json` (ignored by git)
+- **File analysis**: Type breakdown, size distribution, largest files
+- **Error handling**: All errors are caught and shown with clear messages
+
+---
+
+## Security Considerations
+
+- **Key storage**: `key.txt` is sensitive—keep it safe, never commit
+- **Key rotation**: Use the CLI to generate a new key (old files become unreadable)
+- **Integrity**: All encryption/decryption is verified with SHA-256
+- **Best practices**: Always backup your key, test decryption before deleting originals
+
+---
